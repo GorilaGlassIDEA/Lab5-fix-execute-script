@@ -5,6 +5,8 @@ import java.util.*;
 import org.example.commands.Command;
 import org.example.exceptions.IncorrectArgsNumber;
 import org.example.exceptions.InvalidDataException;
+import org.example.interfaces.ReadFileFiles;
+import org.example.interfaces.Readable;
 import org.example.managers.CollectionManager;
 import org.example.managers.ConsoleManager;
 import org.example.managers.HistoryCollection;
@@ -18,7 +20,15 @@ import javax.xml.bind.JAXBException;
 public class Main {
     public static CollectionManager cm = new CollectionManager();
 
-    public static Invoker inv = new Invoker();
+
+    // Создаем объект типа Readable длч чтения данных, замени ReadFileFiles
+    // на ReadFileBufferedReader когда напишешь на
+
+
+    //много статиков это очень плохо
+    public static Readable readable = new ReadFileFiles();
+    //
+    public static Invoker inv = new Invoker(readable);
 
     public static Scanner sc = new Scanner(System.in);
 
@@ -56,9 +66,7 @@ public class Main {
                 continue;
             }
             try {
-                String[] tokens = Arrays.stream(line.split(" "))
-                        .filter(s -> !s.isEmpty())
-                        .toArray(String[]::new);
+                String[] tokens = Arrays.stream(line.split(" ")).filter(s -> !s.isEmpty()).toArray(String[]::new);
                 console.setTokens(tokens);
                 Command command = inv.commands.get(tokens[0]);
                 if (tokens.length == 1) {
@@ -73,9 +81,8 @@ public class Main {
                         System.out.println(e.getMessage());
                     }
                 }
-                if (tokens.length > 2)
-                    if (command.getArgsAmount() != tokens.length - 1)
-                        throw new IncorrectArgsNumber(command.getArgsAmount());
+                if (tokens.length > 2) if (command.getArgsAmount() != tokens.length - 1)
+                    throw new IncorrectArgsNumber(command.getArgsAmount());
             } catch (NullPointerException e) {
                 System.out.println("Команда неизвестная, введите другую");
             } catch (IncorrectArgsNumber e) {

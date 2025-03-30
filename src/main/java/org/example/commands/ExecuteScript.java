@@ -2,6 +2,8 @@ package org.example.commands;
 
 import org.example.Main;
 import org.example.exceptions.IncorrectArgsNumber;
+import org.example.interfaces.Readable;
+import org.example.iterator.TextIterable;
 
 import java.io.*;
 import java.util.Arrays;
@@ -16,64 +18,44 @@ public class ExecuteScript extends Command {
     /**
      * Конструктор класса ExecuteScript.
      */
-    public ExecuteScript() {
+    private Readable readable;
+
+    public ExecuteScript(Readable readable) {
         super("execute_script", "считать и исполнить скрипт из указанного файла. В скрипте содержатся команды в таком же виде, в котором их вводит пользователь в интерактивном режиме.", 1);
+        this.readable = readable;
     }
+
 
     /**
      * Метод для выполнения команды.
      */
     @Override
     public void execute() {
+        String content;
+        String path;
+        //String path - указываешь свой путь, почитай про System.getEnv() и про System.getProperty("user.dir")
+        // чтобы ты мог указывать относительный путь
+        // TODO: прочитай путь с для
+        //  файла с консоли правильно у тебя там аргумент второй в строке как раз и есть путь к файлу
+
         try {
-            String add = "src/main/resources/";//TODO
-            String file = Main.console.getToken(1);
-            String fileName = add + file;
-            InputStream previousInput = System.in;
-            try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-                System.setIn(new FileInputStream(fileName));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.isEmpty()) {
-                        continue;
-                    }
-                    if (inv.getCommands().containsKey(line)) {
-                        System.out.println("Выполнение команды: " + line);
-                    } else {
-                        continue;
-                    }
-
-                    String[] tokens = Arrays.stream(line.split(" "))
-                            .filter(s -> !s.isEmpty())
-                            .toArray(String[]::new);
-
-                    Main.console.setTokens(tokens);
-
-                    Command command = inv.commands.get(tokens[0]);
-                    if (command == null) {
-                        System.out.println("Команда неизвестная: " + tokens[0]);
-                        continue;
-                    }
-
-                    if (tokens.length - 1 != command.getArgsAmount()) {
-                        System.out.println("Неверное количество аргументов для команды: " + tokens[0]);
-                        continue;
-                    }
-
-                    try {
-                        command.execute();
-                    } catch (IncorrectArgsNumber e) {
-                        System.out.println("Ошибка при выполнении команды: " + e.getMessage());
-                    }
-                }
-            } catch (IOException e) {
-                System.out.println("Ошибка при чтении файла: " + e.getMessage());
-            }finally {
-                System.setIn(previousInput);
-            }
-        } catch (IndexOutOfBoundsException e) {
-            System.out.println("Не указано имя файла для выполнения скрипта.");
+            content = readable.read(path);
+        } catch (IOException e) {
+            System.err.println("Не удалось прочитай файл");
         }
+
+
+        // написал свой Iterator<String>, который читай построчно
+
+        TextIterable textIterable = new TextIterable(content);
+
+        for (String line : textIterable) {
+            //TODO доделать обработку строки, по факту ты получаешь строки line в виде:
+            // update 1
+            // add
+            System.out.println(line);
+            // для проверки вывода исправь на реализацию!<
+        }
+
     }
 }
